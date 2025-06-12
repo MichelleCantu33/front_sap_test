@@ -90,7 +90,7 @@ const StockTransfer = () => {
     }
     setLoading(true);
     try {
-      const response = await fetch("https://biocells-sap-test.onrender.com/stock-transfer", {
+      const response = await fetch("https://pruebas-sap-back.onrender.com/stock-transfer", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -155,33 +155,39 @@ if (jsonData && jsonData.Detalles && jsonData.Detalles.length > 0) {
     }
   };
   const addNewItemLine = () => {
-    const newLine = {
-      LineNum: stockTransferLines.length + 1,
-      ItemCode: "", 
-      ItemDescription: "", 
-      Quantity: "", 
-      SerialNumber: null,
-      "WarehouseCode": destino,
-      "FromWarehouseCode": origen,
-      Factor: 1.0,
-      Factor2: 1.0,
-      Factor3: 1.0,
-      Factor4: 1.0,
-      UseBaseUnits: "tYES",
-      MeasureUnit: null,
-      UnitsOfMeasurment: 1.0,
-      BaseType: "Default",
-      BaseLine: null,
-      BaseEntry: null,
-      UoMEntry: -1,
-      UoMCode: "Manual",
-      LineStatus: "bost_Open",
-      WeightOfRecycledPlastic: 0.0,
-      SerialNumbers: [],
-      BatchNumbers: [], 
-    };
-    setStockTransferLines([...stockTransferLines, newLine]);
+  const newLine = {
+    LineNum: stockTransferLines.length + 1,
+    ItemCode: "", 
+    ItemDescription: "", 
+    Quantity: 1,
+    SerialNumber: null,
+    WarehouseCode: destino,
+    FromWarehouseCode: origen,
+    Factor: 1.0,
+    Factor2: 1.0,
+    Factor3: 1.0,
+    Factor4: 1.0,
+    UseBaseUnits: "tYES",
+    MeasureUnit: null,
+    UnitsOfMeasurment: 1.0,
+    BaseType: "Default",
+    BaseLine: null,
+    BaseEntry: null,
+    UoMEntry: -1,
+    UoMCode: "Manual",
+    LineStatus: "bost_Open",
+    WeightOfRecycledPlastic: 0.0,
+    SerialNumbers: [],
+    BatchNumbers: [], // <- Asegúrate que esto esté siempre
+    CCDNumbers: [],
+    StockTransferLinesBinAllocations: []
   };
+
+  setStockTransferLines([...stockTransferLines, newLine]);
+  setSelectedBatch(null);
+  setCurrentBatchItemIndex(stockTransferLines.length); // apunta al nuevo índice
+};
+
   const [isRemoving, setIsRemoving] = useState(false);
 
 const removeLastItemLine = () => {
@@ -257,7 +263,7 @@ const removeLastItemLine = () => {
    useEffect(() => {
     const fetchItems = async () => {
       try {
-        const response = await fetch("https://biocells-sap-test.onrender.com/items");
+        const response = await fetch("https://pruebas-sap-back.onrender.com/items");
         const data = await response.json();
         setItems(data); // Asume que data contiene la lista de ítems
       } catch (error) {
@@ -281,7 +287,7 @@ const removeLastItemLine = () => {
 
   const fetchBatchNumbers = async (itemCode) => {
     try {
-      const response = await fetch(`https://biocells-sap-test.onrender.com/inventario?codigo_item=${itemCode}&codigo_almacen=${origen}`);
+      const response = await fetch(`https://pruebas-sap-back.onrender.com/inventario?codigo_item=${itemCode}&codigo_almacen=${origen}`);
       const text = await response.text();
       const data = JSON.parse(text);
   
@@ -313,7 +319,7 @@ const removeLastItemLine = () => {
   useEffect(() => {
     const fetchWarehouses = async () => {
       try {
-        const response = await fetch("https://biocells-sap-test.onrender.com/get-warehouses");
+        const response = await fetch("https://pruebas-sap-back.onrender.com/get-warehouses");
         const data = await response.json();
         setWarehouses(data.warehouses); // Asumiendo que el backend devuelve la lista de bodegas
       } catch (error) {
@@ -332,7 +338,7 @@ useEffect(() => {
     const signal = controller.signal;
 
     try {
-      const response = await fetch(`https://biocells-sap-test.onrender.com/business-partner-price-list/${cliente}`, { signal });
+      const response = await fetch(`https://pruebas-sap-back.onrender.com/business-partner-price-list/${cliente}`, { signal });
 
       if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
@@ -618,12 +624,21 @@ const cantidadMaximaAlcanzada = cantidadAsignada >= cantidadTotal;
     </tbody>
     </table>
 <div style={{ marginTop: "20px" }}>
-  <button className={styles.btnAdd} onClick={addNewItemLine}>
-    Agregar Item
-  </button>
-  <button className={styles.btnRemove} onClick={removeLastItemLine}>
-    Quitar Último Item
-  </button>
+  <button
+  type="button"  // <--- ESTA ES LA CLAVE
+  className={styles.btnAdd}
+  onClick={addNewItemLine}
+>
+  Agregar Item
+</button>
+<button
+  type="button"
+  className={styles.btnRemove}
+  onClick={removeLastItemLine}
+>
+  Quitar Último Item
+</button>
+
 </div>
 </div>
 
